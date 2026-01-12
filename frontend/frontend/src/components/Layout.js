@@ -39,8 +39,6 @@ const Layout = () => {
       items: [
         { to: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/app/orders', icon: Package, label: 'My Orders' },
-        { to: '/app/transactions', icon: Fuel, label: 'Transactions' },
-
         { to: '/app/referral', icon: Users, label: 'Refer & Earn' },
         { to: '/app/support', icon: MessageSquare, label: 'Support' }
       ]
@@ -62,13 +60,6 @@ const Layout = () => {
         { to: '/app/admin/customers', icon: Users, label: 'Customers' },
         { to: '/app/admin/fuel-prices', icon: Fuel, label: 'Fuel Prices' },
         { to: '/app/admin/support', icon: MessageSquare, label: 'Support Tickets' }
-      ]
-    },
-    {
-      section: 'TRANSACTIONS',
-      items: [
-        { to: '/app/transactions', icon: Fuel, label: 'Transactions' },
-
       ]
     }
   ];

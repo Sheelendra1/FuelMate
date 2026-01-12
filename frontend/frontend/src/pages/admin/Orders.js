@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Package, Loader, CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
+import { Package, Loader, CheckCircle, Clock, XCircle, Eye, Calendar } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('pending');
+    const [filter, setFilter] = useState('all');
+    const [dateFilter, setDateFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -89,9 +90,45 @@ export default function AdminOrders() {
         }
     };
 
+    // Date filter logic
+    const isInDateRange = (orderDate) => {
+        if (dateFilter === 'all') return true;
+
+        const now = new Date();
+        const orderDateObj = new Date(orderDate);
+
+        switch (dateFilter) {
+            case 'today':
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                return orderDateObj >= today;
+            case 'week':
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                return orderDateObj >= weekAgo;
+            case 'month':
+                const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                return orderDateObj >= monthAgo;
+            case 'year':
+                const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                return orderDateObj >= yearAgo;
+            default:
+                return true;
+        }
+    };
+
+    const dateFilterOptions = [
+        { value: 'all', label: 'All Time' },
+        { value: 'today', label: 'Today' },
+        { value: 'week', label: 'This Week' },
+        { value: 'month', label: 'This Month' },
+        { value: 'year', label: 'This Year' }
+    ];
+
     const filteredOrders = orders.filter(order => {
-        if (filter === 'all') return true;
-        return order.status === filter;
+        // Status filter
+        const statusMatch = filter === 'all' || order.status === filter;
+        // Date filter
+        const dateMatch = isInDateRange(order.createdAt);
+        return statusMatch && dateMatch;
     });
 
     return (
@@ -134,19 +171,52 @@ export default function AdminOrders() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 flex-wrap">
-                {['pending', 'completed', 'cancelled', 'all'].map(status => (
-                    <button
-                        key={status}
-                        onClick={() => setFilter(status)}
-                        className={`px-4 py-2 rounded-lg font-medium transition ${filter === status
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-card text-foreground hover:bg-muted'
-                            }`}
-                    >
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </button>
-                ))}
+            <div className="bg-card border border-border rounded-lg p-4 space-y-4">
+                {/* Status Filters */}
+                <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Filter by Status</p>
+                    <div className="flex gap-2 flex-wrap">
+                        {['all', 'pending', 'completed', 'cancelled'].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setFilter(status)}
+                                className={`px-4 py-2 rounded-lg font-medium transition text-sm ${filter === status
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-foreground hover:bg-muted/80'
+                                    }`}
+                            >
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Date Filters */}
+                <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Filter by Date
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                        {dateFilterOptions.map(option => (
+                            <button
+                                key={option.value}
+                                onClick={() => setDateFilter(option.value)}
+                                className={`px-4 py-2 rounded-lg font-medium transition text-sm ${dateFilter === option.value
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-muted text-foreground hover:bg-muted/80'
+                                    }`}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Results count */}
+                <p className="text-sm text-muted-foreground">
+                    Showing {filteredOrders.length} of {orders.length} orders
+                </p>
             </div>
 
             {/* Orders List */}
